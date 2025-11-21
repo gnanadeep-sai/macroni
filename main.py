@@ -1,26 +1,17 @@
 from time import monotonic
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.widgets import LoadingIndicator, DataTable
-from textual.widgets._directory_tree import DirectoryTree
-from textual.widgets._footer import Footer
-from textual.widgets._static import Static
+from textual.widgets import LoadingIndicator, DataTable, Footer, Static, DirectoryTree
 
 ACTIVE_TASKS = [{"name":"test", "type": "startup"}, {"name":"test", "type": "startup"}, {"name":"test", "type": "startup", }]
 UNCHECKED_SYMBOL, CHECKED_SYMBOL = "☐", "☑"
-
-
-
-
-
-
-
 
 class TaskList(DataTable):
     BINDINGS = [
         Binding("space", "select_cursor", "Select"),
         Binding("delete", "delete_task", "Delete")
     ]
+    
     def on_mount(self):
         self.add_columns(("", "select"), ("Task Name","task-name"), ("Type", "type"), ("Next Run", "next-run"), ("Last Run", "last-run"))
         # adding rows from database
