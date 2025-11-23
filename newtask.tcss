@@ -1,0 +1,79 @@
+#task-name-input {
+    width: 2fr;
+    max-width: 45;
+}
+
+#task-name-input-holder {
+    height: auto;
+    margin: 1;
+}
+
+#clear {
+    width: 1fr;
+    max-width: 16;
+}
+
+
+#path-input {
+    width: 2fr;
+    max-width: 45;
+}
+
+#path-holder {
+    height: auto;
+    margin: 1;
+}
+
+#select {
+    width: 1fr;
+    max-width: 16;
+}
+
+.hidden {
+    display: none;
+}
+
+
+#trigger-row {
+    margin: 1;
+    height: auto;
+}
+
+#trigger-row > * {
+    width: 1fr;
+    max-width: 45;
+    margin: 0;
+    padding: 0;
+}
+
+#trigger-row2 > * {
+    width: 1fr;
+    max-width: 45;
+    margin: 0;
+    padding: 0;
+}
+
+#dependency-row,
+#asap {
+    margin:0 0 1 1;
+    height:auto
+}
+
+#asap {
+    width: 1fr;
+    max-width:45;
+}
+
+#dependency-row > * {
+    width: 1fr;
+    max-width: 45;
+    height: auto;
+}
+
+#submit-row {
+    margin: 0 0 1 1;
+    height:auto
+}
+#submit-row > * {
+    margin: 0 0 1 1;
+}
