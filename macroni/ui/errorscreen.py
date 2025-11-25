@@ -13,12 +13,10 @@ class ErrorScreen(ModalScreen):
     
     def on_mount(self):
         errors = "\n".join(f"- {e}" for e in self.app.errors)
-        open("test.txt", "a").write(f"Validation: {errors}\n")
         self.query_one("#errors", Label).update(content=errors)
     
     def on_show(self):
         errors = "\n".join(f"- {e}" for e in self.app.errors)
-        open("test.txt", "a").write(f"Validation: {errors}\n")
         self.query_one("#errors", Label).update(content=errors)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:

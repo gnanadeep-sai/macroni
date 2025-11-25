@@ -4,9 +4,9 @@ from textual.containers import Horizontal
 from textual.screen import Screen
 from textual.widgets import Static, Input, Button, Header, Select, Checkbox, SelectionList
 from textual.widgets._input import Selection
-import db
-import directory
-import validation, errorscreen
+import macroni.backend.db as db
+import macroni.ui.directory as directory
+import macroni.ui.validation as validation, macroni.ui.errorscreen as errorscreen
 
 TRIGGER_TYPES = [
     ("Startup", "startup"),

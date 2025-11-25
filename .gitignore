@@ -1,0 +1,5 @@
+.macroni_env/
+.vscode/
+__pycache__/
+test.txt
+tasks.db

@@ -1,7 +1,7 @@
 import sqlite3
 import json
 
-conn = sqlite3.connect("tasks.db")
+conn = sqlite3.connect("macroni/backend/tasks.db")
 cursor = conn.cursor()
 
 cursor.execute("""

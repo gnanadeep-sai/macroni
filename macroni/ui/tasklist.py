@@ -1,7 +1,7 @@
 from textual.binding import Binding
 from textual.widgets import DataTable
-import db
-from message import Message
+import macroni.backend.db as db
+from macroni.ui.message import Message
 
 class TaskList(DataTable):
     UNCHECKED_SYMBOL, CHECKED_SYMBOL = "☐", "☑"
