@@ -1,11 +1,6 @@
 from textual.app import App, ComposeResult
-from textual.binding import Binding
-from textual.containers import Horizontal
-from textual.widgets import LoadingIndicator, DataTable, Footer, Static, DirectoryTree
-from textual.widgets._button import Button
-from textual.widgets._header import Header
-from textual.widgets._input import Input
-import macroni.ui.directory as directory, macroni.ui.message as message, macroni.ui.tasklist as tasklist, macroni.ui.newtask as newtask, macroni.ui.errorscreen as errorscreen
+from textual.widgets import Footer, Header
+import macroni.ui.tasklist as tasklist, macroni.ui.newtask as newtask
 
 class Macroni(App):
     """Class containing the Macroni app."""

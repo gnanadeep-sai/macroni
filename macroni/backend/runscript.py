@@ -19,20 +19,27 @@ async def run_script(task_id, path):
     elif ext == ".sh":
         cmd = ["bash", path]
 
-
     elif ext == ".exe":
         cmd = [path]
 
-    process = await asyncio.create_subprocess_exec(
+    timestamp = datetime.now().isoformat(timespec="seconds")
+    logs = open(LOG_FILE_PATH, "a")
+    try:
+        process = await asyncio.create_subprocess_exec(
         *cmd,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE
-    )
+        
+        )
+        out, err = await process.communicate()
+        stdout = out.decode(errors="ignore")
+        stderr = err.decode(errors="ignore")
+        exit_code = process.returncode()
 
-    out, err = await process.communicate()
-    stdout = out.decode(errors="ignore")
-    stderr = err.decode(errors="ignore")
-    timestamp = datetime.now().isoformat(timespec="seconds")
+        logs.write(f"{timestamp}: Task {task_id} finished (Code: {exit_code})\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}\n\n")
 
-    logs = open(LOG_FILE_PATH, "a")
-    logs.write(f"{timestamp}: Task {task_id} finished\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}\n\n")
+    except Exception as e:
+        logs.write(f"{timestamp}: Task {task_id} failed")
+
+
+    
