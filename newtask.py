@@ -4,6 +4,7 @@ from textual.containers import Horizontal
 from textual.screen import Screen
 from textual.widgets import Static, Input, Button, Header, Select, Checkbox, SelectionList
 from textual.widgets._input import Selection
+import db
 import directory
 import validation, errorscreen
 
@@ -141,6 +142,7 @@ class NewTask(Screen):
         if event.button.id == "clear":
             self.query_one("#task-name-input", Input).value = ""
             self.set_focus(self.query_one("#task-name-input", Input))
+            
         if event.button.id == "select":
             self.app.push_screen(directory.DirectoryScreen(), self.on_file_selected)
         
@@ -148,11 +150,10 @@ class NewTask(Screen):
             data = self.get_form_data()
             self.errors = validation.validate_form(data).copy()
             if len(self.errors) == 0:
-                # update database
+                db.add_task(data)
                 self.app.pop_screen()
             else:
                 self.app.errors = self.errors.copy()
-                open("test.txt", "a").write(f"{self.app.errors}\n")
                 self.app.push_screen(errorscreen.ErrorScreen())
 
         if event.button.id == "reset-fields":
@@ -179,6 +180,8 @@ class NewTask(Screen):
 
         dependency = self.query_one("#dependency-row")
         data["dependency"] = dependency
+
+        data["asap"] = self.query_one("#asap")
 
         return data    
 

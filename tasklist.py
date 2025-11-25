@@ -1,5 +1,6 @@
 from textual.binding import Binding
 from textual.widgets import DataTable
+import db
 from message import Message
 
 class TaskList(DataTable):
@@ -30,11 +31,13 @@ class TaskList(DataTable):
         tasks = 0
         for key in selected_keys:
             try:
+                db.remove_task(key)
                 self.remove_row(key)
                 tasks += 1
-                # updating the database
+
             except Exception as e:
                 self.log(f"Failed to delete task: {e}")
+                
         self.reset_selection()
         self.log(f"Successfully deleted {tasks} task(s)")
 
