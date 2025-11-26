@@ -6,9 +6,13 @@ LOG_FILE_PATH = "log.txt"
 
 async def run_script(task_id, path):
 
-    if dependency_handler.is_dependency_success(task_id) is False:
+    open(LOG_FILE_PATH, "a").write(f"Running script for task {task_id}\n")
+    
+    # Check if the task on which this task depends has succeeded (or failed)
+    if not dependency_handler.is_dependency_success(task_id):
         return False
     
+    # Determine command based on file extension
     ext = os.path.splitext(path)[1].lower()
 
     if ext in [".bat", ".cmd"]:
@@ -17,16 +21,11 @@ async def run_script(task_id, path):
     elif ext == ".ps1":
         cmd = ["powershell", "-ExecutionPolicy", "Bypass", "-File", path]
 
-    elif ext == ".py":
-        cmd = ["python", path]
-
-    elif ext == ".sh":
-        cmd = ["bash", path]
-
     elif ext == ".exe":
         cmd = [path]
 
     try:
+        # Run the script asynchronously
         process = await asyncio.create_subprocess_exec(
         *cmd,
         stdout=asyncio.subprocess.PIPE,
@@ -47,6 +46,7 @@ async def run_script(task_id, path):
         return success
         
     except Exception as e:
+        open(LOG_FILE_PATH, "a").write(f"Error running script for task {task_id}: {e}\n")
         return False
 
 

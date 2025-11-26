@@ -3,9 +3,11 @@ import json
 
 from textual.widgets._select import Select
 
+# Connect to database
 conn = sqlite3.connect("macroni/backend/tasks.db")
 cursor = conn.cursor()
 
+# Create tasks table if it doesn't exist
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS tasks (
     id INTEGER PRIMARY KEY,
@@ -19,10 +21,13 @@ CREATE TABLE IF NOT EXISTS tasks (
 );
 """)
 
+
+# Remove a task by ID
 def remove_task(task_id: int):
     cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
     conn.commit()
 
+# Add a new task
 def add_task(task_data: dict):
     new_task = {}
     new_task["name"] = task_data["name"]
@@ -31,10 +36,15 @@ def add_task(task_data: dict):
     trigger_type = task_data["trigger"]
     new_task["trigger"] = {"type": trigger_type}
 
+    # Slots change based on trigger type. Hence handling each type separately.
     slot1 = task_data["slot1"]
     slot2 = task_data["slot2"]
     slot3 = task_data["slot3"]
 
+    # Handle trigger-specific data and update new_task accordingly.
+    # All the data is validated before running this function. So avoding extra checks here.
+
+    # Startup trigger has no extra data
     if trigger_type == "startup":
         pass  
 
@@ -67,14 +77,13 @@ def add_task(task_data: dict):
             new_task["trigger"]["threshold_gb"] = float(threshold)
 
     elif trigger_type == "keyboard":
-        mods = slot1.query_one("#keyboard-mod-select").selected
-        mods = [mod[1] for mod in mods]  # (label, value)
-
+        mod = slot1.query_one("#keyboard-mod-select").selected
         key = str(slot2.query_one("#keyboard-key-select").label)
 
-        new_task["trigger"]["modifiers"] = mods
+        new_task["trigger"]["modifiers"] = mod
         new_task["trigger"]["key"] = key
 
+    # Handle dependency data
     dep_row = task_data["dependency"]
 
     dep_task = dep_row.query_one("#dependency-task-select").value
@@ -83,12 +92,14 @@ def add_task(task_data: dict):
     dep_cond = dep_row.query_one("#dependency-condition-select").value
     dep_cond = None if dep_cond == Select.BLANK else dep_cond
 
+    # Handle ASAP flag
     asap = 1 if task_data["asap"].value else 0
 
     new_task["dependency_task_id"] = dep_task
     new_task["dependency_condition"] = dep_cond
     new_task["run_asap"] = asap
 
+    # Insert new task into database
     cursor.execute("""
         INSERT INTO tasks (name, script_path, trigger_data, dependency_task_id, dependency_condition, run_asap)
         VALUES (?, ?, ?, ?, ?, ?)

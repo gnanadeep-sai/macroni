@@ -1,7 +1,8 @@
 import os
 
-TASK_NAMES = ["task1", "task2"]
+TASK_NAMES = [row["name"] for row in os.listdir("tasks_db")]  
 
+# Validate form data and return a list of error messages. (Pretty evident from the error messages so not much commenting needed)
 def validate_form(data):
     errors = []
 
@@ -74,13 +75,15 @@ def validate_form(data):
             thr = data["slot3"].query_one("Input").value.strip()
             if not thr:
                 errors.append("Folder size threshold cannot be empty.")
-            elif not thr.isdigit():
-                errors.append("Folder threshold must be a number.")
-            elif int(thr) <= 0:
-                errors.append("Folder threshold given is invalid.")
+            try:
+                size_val = float(thr)
+                if size_val < 0:
+                    errors.append("Folder size threshold must be a positive number.")
+            except:
+                errors.append("Folder size threshold must be a valid number.")
 
     elif trigger == "keyboard":
-        # modifier list: optional
+        # modifier list (ctrl, alt etc): optional
         # key not opt
         btn = data["slot2"].query_one("#keyboard-key-select")
         if btn.label == "Click and press key":

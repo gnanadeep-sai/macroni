@@ -1,37 +1,42 @@
+import json
 from textual.binding import Binding
 from textual.widgets import DataTable
 import macroni.backend.db as db
-from macroni.ui.message import Message
+from textual.widgets import Footer, Header
 
 class TaskList(DataTable):
+    """A data table to display and manage tasks."""
+
+    # Symbols for unchecked and checked states in the selection column
     UNCHECKED_SYMBOL, CHECKED_SYMBOL = "☐", "☑"
     BINDINGS = [
         Binding("space", "select_cursor", "Select"),
         Binding("delete", "delete_task", "Delete")
     ]
 
-    def on_mount(self):
-        self.add_columns(("", "select"), ("Task Name","task-name"), ("Type", "type"), ("Next Run", "next-run"), ("Last Run", "last-run"))
-        # adding rows from database
-        self.add_row("☐", "Cleanup", "Startup", "in 2 hrs", "Success", key="1") #temp
-        self.add_row("☐", "Backup", "Startup", "in 2 hrs", "Success", key="2") #temp
+    def on_show(self):
+        """Populate the task list when the screen is shown."""
 
-    def add_task(self, key, task):
-        try:
-            self.add_row(self.UNCHECKED_SYMBOL, *task, key = key)
-            # updating the databasee
-        
-        except Exception as e:
-            self.log(f"Failed to add task: {e}")
+        self.add_columns(("", "select"), ("Task Name","task-name"), ("Type", "type"), ("Last Run", "last-run"), ("Script Path", "script-path"))
+        db_cursor = db.cursor.execute("SELECT id, name, trigger_data, last_run_success, script_path FROM tasks")
+        tasks = db_cursor.fetchall()
+        for task in tasks:
+            task_id, name, trigger_data, last_run_success, script_path = task
+            trig = json.loads(trigger_data)
+            trig_type = trig["type"].capitalize()
+            last_run = "Success" if last_run_success else "Failure"
+            self.add_row(self.UNCHECKED_SYMBOL, name, trig_type, last_run, script_path, key=str(task_id))
     
     def action_delete_task(self):
+        """Delete selected tasks from the database and the table."""
+        
         selected_keys = self.get_selected_row_keys()
         if len(selected_keys) == 0:
             return
         tasks = 0
         for key in selected_keys:
             try:
-                db.remove_task(key)
+                db.remove_task(int(key))
                 self.remove_row(key)
                 tasks += 1
 
@@ -41,37 +46,36 @@ class TaskList(DataTable):
         self.reset_selection()
         self.log(f"Successfully deleted {tasks} task(s)")
 
-    def edit_task(self, key, updated_task):
-        if len(updated_task) != len(self.columns):
-            self.log(f"Failed to edit row: All parameters are not provided")
-        try:
-            self.remove_row(key)
-            self.add_task(key, *updated_task)
-        except Exception as e:
-            self.log(f"Failed to edit row: {e}")
-
     def get_selected_row_keys(self):
+        """Return a list of keys for the selected rows."""
         out = []
         for key, row in self.rows.items():
             if self.get_cell(key, "select") == self.CHECKED_SYMBOL:
-                out.append(key)
+                out.append(key.value)
         return out
         
     def on_data_table_row_selected(self, event):
+        """Toggle selection state of the selected row."""
         row_key = event.row_key.value
         current = self.get_cell(row_key, "select")
         new = self.CHECKED_SYMBOL if current == self.UNCHECKED_SYMBOL else self.UNCHECKED_SYMBOL
         self.update_cell(row_key, "select", new)
     
     def reset_selection(self):
+        """Reset all rows to unchecked state."""
         for key, row in self.rows.items():
             self.update_cell(key, "select", self.UNCHECKED_SYMBOL)
 
     def log(self, message:str):
         self.app.log(message)
-        logger = self.app.query_one(Message)
-        logger.update(f"{message}")
+        open("log.txt", "a").write(message + "\n")
 
     def __init__(self):
         super().__init__()
         self.cursor_type = "row"
+
+class TaskListScreen(TaskList):
+    def compose(self):
+        yield Header()
+        yield TaskList()
+        yield Footer()

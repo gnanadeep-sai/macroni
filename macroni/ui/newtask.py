@@ -1,4 +1,5 @@
 
+from macroni.ui import tasklist
 from textual import events
 from textual.containers import Horizontal
 from textual.screen import Screen
@@ -16,9 +17,11 @@ TRIGGER_TYPES = [
     ("Keyboard Shortcut", "keyboard")
 ]
 
-TASK_NAMES = [("Task 1", "task-1-id"), ("Task 2", "task-2-id")]
+TASK_NAMES = [(t['name'], t['id']) for t in db.get_all_tasks()]
 
 class NewTask(Screen):
+    """A screen to add a new task."""
+
     TITLE = "Add New Task"
     OPTIONS = TRIGGER_TYPES
     CSS_PATH = "newtask.tcss"
@@ -45,6 +48,7 @@ class NewTask(Screen):
             id="trigger-row"
         )
 
+        # Dependency row to run only if another task succeeded/failed
         yield Horizontal(
             Input(value="Run only if:", disabled=True),
             Select(options=TASK_NAMES, prompt="Select task", id="dependency-task-select"),
@@ -57,6 +61,7 @@ class NewTask(Screen):
             Button(label="Reset", id="reset-fields"),
             id="submit-row")
     
+    # Reset dynamic slots (slot1, slot2, slot3)
     def reset_slots(self):
         slots = self.query(".slot")
         i = 1
@@ -125,9 +130,10 @@ class NewTask(Screen):
             slot3.mount(Input(placeholder="Enter size in GB"))
 
     def on_key(self, event:events.Key):
+        """Handle key presses for keyboard shortcut selection."""
         try:
             input_box = self.query_one("#keyboard-key-select")
-        except Exception as e:
+        except:
             return
         if not input_box.has_focus:
             return
@@ -135,14 +141,17 @@ class NewTask(Screen):
         cleaned_letter = event.name
         stripper = ["ctrl_", "shift_", "alt_", "win_", "upper_"]
         for strip in stripper:
-            cleaned_letter = cleaned_letter.replace(strip, "")
+            cleaned_letter = cleaned_letter.replace(strip, "") # Remove modifier prefixes
         input_box.label = cleaned_letter
         
     def on_button_pressed(self, event):
+
+        # Clear task name input
         if event.button.id == "clear":
             self.query_one("#task-name-input", Input).value = ""
             self.set_focus(self.query_one("#task-name-input", Input))
-            
+
+        # Open directory screen to select script    
         if event.button.id == "select":
             self.app.push_screen(directory.DirectoryScreen(), self.on_file_selected)
         
@@ -151,6 +160,7 @@ class NewTask(Screen):
             self.errors = validation.validate_form(data).copy()
             if len(self.errors) == 0:
                 db.add_task(data)
+                self.app.query_one(tasklist.TaskList).refresh(recompose=True)
                 self.app.pop_screen()
             else:
                 self.app.errors = self.errors.copy()
@@ -160,6 +170,7 @@ class NewTask(Screen):
             self.reset_form()
 
     def get_form_data(self):
+        """Retrieve data from the form inputs."""
         data = {}
 
         # Task name
@@ -177,7 +188,8 @@ class NewTask(Screen):
         data["slot1"] = slots[0]
         data["slot2"] = slots[1]
         data["slot3"] = slots[2]
-
+        
+        # Dependency
         dependency = self.query_one("#dependency-row")
         data["dependency"] = dependency
 
@@ -186,6 +198,8 @@ class NewTask(Screen):
         return data    
 
     def reset_form(self):
+        """Reset all form fields to default state."""
+        
         self.query_one("#task-name-input", Input).value = ""
         self.query_one("#path-input", Input).value = ""
 

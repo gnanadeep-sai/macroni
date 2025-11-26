@@ -4,6 +4,7 @@ from textual.app import ComposeResult
 from textual.containers import Grid
 
 class ErrorScreen(ModalScreen):
+    """A modal screen to display error messages."""
     def compose(self) -> ComposeResult:
         yield Grid(
             Label("", id="errors"),

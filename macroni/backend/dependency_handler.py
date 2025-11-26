@@ -13,6 +13,9 @@ def get_dependency(task_id: int):
         "SELECT dependency_task_id, dependency_condition FROM tasks WHERE id = ?",
         (task_id,)
     ).fetchone()
+
+    if not row[0]:
+        return None
     return row
 
 def is_dependency_success(task_id: int):
@@ -27,8 +30,14 @@ def is_dependency_success(task_id: int):
         return True
     row = cursor.execute(
         "SELECT last_run_success FROM tasks WHERE id = ?", 
-        (dependency["dependency_task_id"],)
+        (dependency[0],)
     ).fetchone()
-    success = row["last_run_success"]
+    success = row[0]
     
-    return success == 1
+    condition = dependency[1]
+    cond = 0
+    if condition == "succeed":
+        cond = 1
+    
+    # Basically return True if both the condition and last run success are same (both success or both failure)
+    return success - cond == 0

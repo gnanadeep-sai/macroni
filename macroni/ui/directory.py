@@ -3,9 +3,8 @@ from textual.binding import Binding
 from textual.screen import Screen
 from textual.widgets import DirectoryTree, Header, Footer
 
-import macroni.ui.newtask as newtask
-
 class Directory(DirectoryTree):
+    """A directory tree that only shows certain file types and handles double-clicks."""
     last_click_time = 0
     last_click_path = None
     DOUBLE_CLICK_THRESHOLD = 0.5
@@ -14,7 +13,7 @@ class Directory(DirectoryTree):
         Binding("backspace", "go_up", "Go to Parent")
     ]
 
-    ALLOWED_EXTS = {".sh", ".exe", ".py", ".bat1", ".ps1"}   
+    ALLOWED_EXTS = {".exe", ".bat", ".ps1"}   
 
     def filter_paths(self, paths):
         """Return only allowed extensions."""
@@ -26,6 +25,7 @@ class Directory(DirectoryTree):
                     yield p
 
     def is_double_click(self, path):
+        """Determine if the current click is a double-click on the same path."""
         current_time = monotonic()
         out = False
         if (self.last_click_path == path and (current_time - self.last_click_time) <= self.DOUBLE_CLICK_THRESHOLD):
@@ -35,6 +35,8 @@ class Directory(DirectoryTree):
         return out
 
     def on_directory_tree_directory_selected(self, event):
+        """Handle directory selection with double-click logic."""
+
         f = open("test.txt", "a")
         f.write("sskjdhkjhd")
         if self.is_double_click(event.path):
@@ -44,6 +46,7 @@ class Directory(DirectoryTree):
                 self.path = event.path
 
     def on_directory_tree_file_selected(self, event):
+        """Handle file selection with double-click logic."""
         if self.is_double_click(event.path):
             self.screen.dismiss(event.path)
 
