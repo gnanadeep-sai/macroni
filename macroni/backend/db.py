@@ -1,6 +1,8 @@
 import sqlite3
 import json
 
+from textual.widgets._select import Select
+
 conn = sqlite3.connect("macroni/backend/tasks.db")
 cursor = conn.cursor()
 
@@ -13,7 +15,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     dependency_task_id INTEGER,
     dependency_condition TEXT,
     run_asap INTEGER DEFAULT 0,
-    enabled INTEGER DEFAULT 1
+    last_run_success INTEGER DEFAULT 0
 );
 """)
 
@@ -68,14 +70,19 @@ def add_task(task_data: dict):
         mods = slot1.query_one("#keyboard-mod-select").selected
         mods = [mod[1] for mod in mods]  # (label, value)
 
-        key = slot2.query_one("#keyboard-key-select").label
+        key = str(slot2.query_one("#keyboard-key-select").label)
 
         new_task["trigger"]["modifiers"] = mods
         new_task["trigger"]["key"] = key
 
     dep_row = task_data["dependency"]
+
     dep_task = dep_row.query_one("#dependency-task-select").value
+    dep_task = None if dep_task == Select.BLANK else dep_task
+
     dep_cond = dep_row.query_one("#dependency-condition-select").value
+    dep_cond = None if dep_cond == Select.BLANK else dep_cond
+
     asap = 1 if task_data["asap"].value else 0
 
     new_task["dependency_task_id"] = dep_task

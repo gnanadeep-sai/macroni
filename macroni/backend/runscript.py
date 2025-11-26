@@ -1,10 +1,14 @@
 import asyncio
-from datetime import datetime
 import os
+from macroni.backend import db, dependency_handler
 
 LOG_FILE_PATH = "log.txt"
 
 async def run_script(task_id, path):
+
+    if dependency_handler.is_dependency_success(task_id) is False:
+        return False
+    
     ext = os.path.splitext(path)[1].lower()
 
     if ext in [".bat", ".cmd"]:
@@ -22,24 +26,28 @@ async def run_script(task_id, path):
     elif ext == ".exe":
         cmd = [path]
 
-    timestamp = datetime.now().isoformat(timespec="seconds")
-    logs = open(LOG_FILE_PATH, "a")
     try:
         process = await asyncio.create_subprocess_exec(
         *cmd,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE
-        
         )
         out, err = await process.communicate()
-        stdout = out.decode(errors="ignore")
-        stderr = err.decode(errors="ignore")
-        exit_code = process.returncode()
+        exit_code = process.returncode
 
-        logs.write(f"{timestamp}: Task {task_id} finished (Code: {exit_code})\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}\n\n")
-
+        success = True if exit_code == 0 else False
+        if success:
+            try:
+                db.cursor.execute( "UPDATE tasks SET last_run_success = ? WHERE id = ?",
+                                    (1 if success else 0, task_id)
+                                )
+                db.conn.commit()
+            except:
+                pass
+        return success
+        
     except Exception as e:
-        logs.write(f"{timestamp}: Task {task_id} failed")
+        return False
 
 
     

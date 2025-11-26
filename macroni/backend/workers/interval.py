@@ -3,6 +3,7 @@ import json
 from datetime import datetime, timedelta, time as dtime
 
 from macroni.backend import db
+from macroni.backend.runscript import run_script
 
 RETRY_INTEVRAL_MIN = 5
 RETRY_INTERVAL_CAP = 60
@@ -24,7 +25,7 @@ async def wait_until(hhmm: str):
             slept += min(5, wait - slept)
         return
 
-async def run_worker(task_row, run_script, stop_event: asyncio.Event):
+async def run_worker(task_row, stop_event: asyncio.Event):
     task_id = task_row["id"]
     trig = json.loads(task_row["trigger_data"])
     interval = int(trig.get("interval", 0))
