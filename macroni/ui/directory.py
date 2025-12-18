@@ -37,8 +37,6 @@ class Directory(DirectoryTree):
     def on_directory_tree_directory_selected(self, event):
         """Handle directory selection with double-click logic."""
 
-        f = open("test.txt", "a")
-        f.write("sskjdhkjhd")
         if self.is_double_click(event.path):
             if event.path == self.path:
                 self.path = self.path.absolute().parent
