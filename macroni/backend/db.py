@@ -21,7 +21,25 @@ CREATE TABLE IF NOT EXISTS tasks (
 );
 """)
 
-
+def get_all_tasks():
+    """Get all tasks from the database."""
+    cursor.execute("SELECT id, name, script_path, trigger_data, dependency_task_id, dependency_condition, run_asap, last_run_success FROM tasks")
+    rows = cursor.fetchall()
+    tasks = []
+    for row in rows:
+        task = {
+            "id": row[0],
+            "name": row[1],
+            "script_path": row[2],
+            "trigger": json.loads(row[3]),
+            "dependency_task_id": row[4],
+            "dependency_condition": row[5],
+            "run_asap": bool(row[6]),
+            "last_run_success": bool(row[7])
+        }
+        tasks.append(task)
+    return tasks
+    
 # Remove a task by ID
 def remove_task(task_id: int):
     cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
